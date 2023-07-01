@@ -1,0 +1,18 @@
+[package]
+name = "safe_smart_controller_gateway"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+safe_drive = "0.2"
+remote_control_msgs = {path = "/tmp/adaos/remote_control_msgs"}
+async-std = { version = "1", features = ["attributes"] }
+signal-hook = "0.3.4"
+network_module_util = {path = "/home/taiga/scgw_ws/sc_gateway_verfied/network_module_util"}
+
+[package.metadata.ros]
+msg = ["remote_control_msgs"]
+msg_dir = "/tmp/adaos/"
+safe_drive_version = "0.2"
