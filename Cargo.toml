@@ -11,6 +11,7 @@ remote_control_msgs = {path = "/tmp/adaos/remote_control_msgs"}
 async-std = { version = "1", features = ["attributes"] }
 signal-hook = "0.3.4"
 network_module_util = {path = "/home/taiga/scgw_ws/sc_gateway_verfied/network_module_util"}
+gethostname = "0.4.3"
 
 [package.metadata.ros]
 msg = ["remote_control_msgs"]
