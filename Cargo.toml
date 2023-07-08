@@ -7,13 +7,14 @@ edition = "2021"
 
 [dependencies]
 safe_drive = "0.2"
-remote_control_msgs = {path = "/tmp/adaos/remote_control_msgs"}
+remote_control_msgs = {path = "/tmp/scgw_msg/remote_control_msgs"}
 async-std = { version = "1", features = ["attributes"] }
 signal-hook = "0.3.4"
+signal-hook-async-std = "0.2"
 network_module_util = {path = "/home/taiga/scgw_ws/sc_gateway_verfied/network_module_util"}
 gethostname = "0.4.3"
 
 [package.metadata.ros]
 msg = ["remote_control_msgs"]
-msg_dir = "/tmp/adaos/"
+msg_dir = "/tmp/scgw_msg/"
 safe_drive_version = "0.2"
