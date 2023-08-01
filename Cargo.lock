@@ -644,13 +644,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "436b050e76ed2903236f032a59761c1eb99e1b0aead2c257922771dab1fc8c78"
 
 [[package]]
-name = "remote_control_msgs"
-version = "0.2.1"
-dependencies = [
- "safe_drive",
-]
-
-[[package]]
 name = "rustix"
 version = "0.37.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -687,10 +680,17 @@ dependencies = [
  "async-std",
  "gethostname",
  "network_module_util",
- "remote_control_msgs",
  "safe_drive",
+ "scgw_msgs",
  "signal-hook",
  "signal-hook-async-std",
+]
+
+[[package]]
+name = "scgw_msgs"
+version = "0.2.1"
+dependencies = [
+ "safe_drive",
 ]
 
 [[package]]
@@ -964,3 +964,7 @@ name = "windows_x86_64_msvc"
 version = "0.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
+
+[[patch.unused]]
+name = "safe_smart_controller_gateway"
+version = "0.1.0"

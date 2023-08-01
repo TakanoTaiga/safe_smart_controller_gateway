@@ -7,7 +7,7 @@
   <maintainer email="ttttghghnb554z@outlook.jp">Taiga Takano</maintainer>
   <license>Apache License 2.0</license>
 
-  <depend>remote_control_msgs</depend>
+  <depend>scgw_msgs</depend>
   <depend>autoware_planning_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>

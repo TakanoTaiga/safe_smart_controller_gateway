@@ -21,12 +21,15 @@ use network_module_util::key::{
 };
 use network_module_util::net;
 
+use safe_drive::msg::U8Seq;
+use safe_drive::topic::publisher::Publisher;
 use safe_drive::{
     error::DynError,
     logger::Logger,
     pr_info,
     pr_error
 };
+use scgw_msgs::msg::Data;
 
 use std::os::unix::prelude::OsStringExt;
 use std::time::Duration;
@@ -52,6 +55,7 @@ pub async fn main_udp_service(
     closer: Receiver<bool>,
     lock_search: Sender<bool>,
     ipaddr_send: Sender<SocketAddr>,
+    publisher: Publisher<Data>
 ) -> Result<(), DynError> {
     // --- Logger ---
     let logger = Logger::new("main_udp_service");
@@ -88,7 +92,15 @@ pub async fn main_udp_service(
                             lock_search.send(true).await?;
                             ipaddr_send.send(connection_buffer.taget_address).await?;
                         }
-                        NodeConnectionKey::GamepadValue => {}
+                        NodeConnectionKey::DataValue => {
+                            let mut msg = scgw_msgs::msg::Data::new().unwrap();
+                            msg.id = connection_buffer.raw_buffer[1];
+                            let mut data = U8Seq::new(connection_buffer.rcv_size - 2).unwrap();
+                            let ref_data = data.as_slice_mut();
+                            ref_data[0] = connection_buffer.raw_buffer[3];
+                            msg.data = data;
+                            publisher.send(&msg)?;
+                        }
                         NodeConnectionKey::UnknownKey => {
                             pr_error!(logger, "Unknown ID:{}", connection_buffer.raw_buffer[0]);
                         }
