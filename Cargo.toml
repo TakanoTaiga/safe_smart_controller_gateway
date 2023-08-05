@@ -11,7 +11,7 @@ scgw_msgs = {path = "/tmp/msg/scgw_msgs"}
 async-std = { version = "1", features = ["attributes"] }
 signal-hook = "0.3.4"
 signal-hook-async-std = "0.2"
-network_module_util = {path = "/home/taiga/sc_gateway_verfied/network_module_util"}
+network_module_util = {git = "https://github.com/hakoroboken/network_module_util.git"}
 gethostname = "0.4.3"
 
 [package.metadata.ros]
