@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
+// --- Network util ---
 use network_module_util::key::{
     NodeConnectionKey,
     ConnectionBuffer,
@@ -21,6 +21,7 @@ use network_module_util::key::{
 };
 use network_module_util::net;
 
+// --- ROS 2 Socket ---
 use safe_drive::msg::U8Seq;
 use safe_drive::topic::publisher::Publisher;
 use safe_drive::{
@@ -43,7 +44,6 @@ use gethostname::gethostname;
 use async_std::channel::{Sender , Receiver};
 use async_std::future::timeout;
 use async_std::prelude::*;
-
 
 // --- Get Signal ---
 use signal_hook::consts::signal::*;
@@ -77,20 +77,23 @@ pub async fn main_udp_service(
         match timeout(deadline, socket.recv_from(&mut connection_buffer.raw_buffer)).await {
             Ok(recv_result) => match recv_result {
                 Ok((recv, addr)) => {
-                    connection_buffer.connection_key = connection_buffer.raw_buffer[0].convert_to_enumkey();
+                    //connection_buffer.raw_buffer[0] is header id. please read doc.
+                    connection_buffer.connection_key = connection_buffer.raw_buffer[0].convert_to_enumkey(); 
                     connection_buffer.rcv_size = recv;
                     connection_buffer.taget_address.set_ip(addr.ip());
-                    connection_buffer.taget_address.set_port(64201);
+                    connection_buffer.taget_address.set_port(64202);
 
                     pr_info!(logger, "Key:{}", connection_buffer.connection_key);
                     match connection_buffer.connection_key {
                         NodeConnectionKey::SearchAppResponse => {
                             lock_search.send(true).await?;
                             ipaddr_send.send(connection_buffer.taget_address).await?;
+                            pr_info!(logger, "Key:{}", connection_buffer.connection_key);
                         }
                         NodeConnectionKey::PingResponse => {
                             lock_search.send(true).await?;
                             ipaddr_send.send(connection_buffer.taget_address).await?;
+                            pr_info!(logger, "Key:{}", connection_buffer.connection_key);
                         }
                         NodeConnectionKey::DataValue => {
                             let mut msg = scgw_msgs::msg::Data::new().unwrap();
@@ -101,10 +104,9 @@ pub async fn main_udp_service(
                             msg.data = data;
                             publisher.send(&msg)?;
                         }
-                        NodeConnectionKey::UnknownKey => {
+                        _ => {
                             pr_error!(logger, "Unknown ID:{}", connection_buffer.raw_buffer[0]);
                         }
-                        _ => {}
                     }
                 }
                 Err(e) => {
@@ -173,7 +175,7 @@ pub async fn ping_app(socket: UdpSocket ,closer: Receiver<bool>, target_info_rcv
                     let mut buffer: Vec<u8> = vec![NodeConnectionKey::PingRequest.convert_to_u8key()];
                     buffer.push(0);
                     socket.send_to(&buffer, addr).await?;
-                    pr_info!(logger, "ping send");
+                    pr_info!(logger, "ping send to {}" , addr);
         
                     async_std::task::sleep(Duration::from_millis(500)).await;
                 }
