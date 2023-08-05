@@ -97,10 +97,12 @@ pub async fn main_udp_service(
                         }
                         NodeConnectionKey::DataValue => {
                             let mut msg = scgw_msgs::msg::Data::new().unwrap();
-                            msg.id = connection_buffer.raw_buffer[1];
+                            msg.id = connection_buffer.raw_buffer[1]; //data packet id. is not node connection key
                             let mut data = U8Seq::new(connection_buffer.rcv_size - 2).unwrap();
                             let ref_data = data.as_slice_mut();
                             ref_data[0] = connection_buffer.raw_buffer[3];
+                            ref_data[1] = connection_buffer.raw_buffer[4];
+                            ref_data[2] = connection_buffer.raw_buffer[5];
                             msg.data = data;
                             publisher.send(&msg)?;
                         }
@@ -153,6 +155,7 @@ pub async fn search_app(socket: UdpSocket ,closer: Receiver<bool>, locker: Recei
                 if locker.try_recv() == Ok(true){
                     pr_info!(logger, "locked");
                     async_std::task::sleep(Duration::from_millis(1000)).await;
+                    while locker.try_recv() == Ok(true) {}
                     continue;
                 }
                 pr_info!(logger, "search");

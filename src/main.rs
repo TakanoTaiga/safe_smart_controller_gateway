@@ -21,7 +21,7 @@ use safe_drive::{
     pr_info,
 };
 use async_std::net::UdpSocket;
-use async_std::channel::{unbounded , bounded};
+use async_std::channel::unbounded;
 
 
 #[async_std::main]
@@ -38,7 +38,7 @@ async fn main() -> Result<(), DynError> {
     
     let (closer_send , closer_rcv) = unbounded();
 
-    let (search_locker_send , search_locker_rcv) = bounded(1);
+    let (search_locker_send , search_locker_rcv) = unbounded();
     let (target_info_send , target_info_rcv) = unbounded();
 
     let main_udp_socket = UdpSocket::bind("0.0.0.0:64201").await?;
