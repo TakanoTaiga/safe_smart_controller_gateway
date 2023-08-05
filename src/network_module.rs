@@ -98,11 +98,11 @@ pub async fn main_udp_service(
                         NodeConnectionKey::DataValue => {
                             let mut msg = scgw_msgs::msg::Data::new().unwrap();
                             msg.id = connection_buffer.raw_buffer[1]; //data packet id. is not node connection key
-                            let mut data = U8Seq::new(connection_buffer.rcv_size - 2).unwrap();
-                            let ref_data = data.as_slice_mut();
-                            ref_data[0] = connection_buffer.raw_buffer[3];
-                            ref_data[1] = connection_buffer.raw_buffer[4];
-                            ref_data[2] = connection_buffer.raw_buffer[5];
+                        
+                            let data_size = connection_buffer.rcv_size - 2;
+                            let mut data = U8Seq::new(data_size).unwrap();
+                            data.as_slice_mut().copy_from_slice(&connection_buffer.raw_buffer[3..3 + data_size]);
+                        
                             msg.data = data;
                             publisher.send(&msg)?;
                         }
