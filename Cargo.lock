@@ -362,6 +362,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4668fb0ea861c1df094127ac5f1da3409a82116a4ba74fca2e58ef927159bb3"
 
 [[package]]
+name = "linked-hash-map"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
+
+[[package]]
 name = "linux-raw-sys"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -645,6 +651,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "436b050e76ed2903236f032a59761c1eb99e1b0aead2c257922771dab1fc8c78"
 
 [[package]]
+name = "ros2_rust_util"
+version = "0.1.0"
+source = "git+https://github.com/TakanoTaiga/ros2_rust_util.git#481fccc0c7511a69d0c70817b9195979b7011478"
+dependencies = [
+ "yaml-rust",
+]
+
+[[package]]
 name = "rustix"
 version = "0.37.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -681,6 +695,7 @@ dependencies = [
  "async-std",
  "gethostname",
  "network_module_util",
+ "ros2_rust_util",
  "safe_drive",
  "scgw_msgs",
  "signal-hook",
@@ -966,6 +981,11 @@ version = "0.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
 
-[[patch.unused]]
-name = "safe_smart_controller_gateway"
-version = "0.1.0"
+[[package]]
+name = "yaml-rust"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56c1936c4cc7a1c9ab21a1ebb602eb942ba868cbd44a99cb7cdc5892335e1c85"
+dependencies = [
+ "linked-hash-map",
+]

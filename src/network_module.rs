@@ -55,7 +55,8 @@ pub async fn main_udp_service(
     closer: Receiver<bool>,
     lock_search: Sender<bool>,
     ipaddr_send: Sender<SocketAddr>,
-    publisher: Publisher<Data>
+    publisher: Publisher<Data>,
+    is_debug: bool
 ) -> Result<(), DynError> {
     // --- Logger ---
     let logger = Logger::new("main_udp_service");
@@ -83,17 +84,18 @@ pub async fn main_udp_service(
                     connection_buffer.taget_address.set_ip(addr.ip());
                     connection_buffer.taget_address.set_port(64202);
 
-                    pr_info!(logger, "Key:{}", connection_buffer.connection_key);
+                    if is_debug{
+                        pr_info!(logger, "Key:{}", connection_buffer.connection_key);
+                    }
+                    
                     match connection_buffer.connection_key {
                         NodeConnectionKey::SearchAppResponse => {
                             lock_search.send(true).await?;
                             ipaddr_send.send(connection_buffer.taget_address).await?;
-                            pr_info!(logger, "Key:{}", connection_buffer.connection_key);
                         }
                         NodeConnectionKey::PingResponse => {
                             lock_search.send(true).await?;
                             ipaddr_send.send(connection_buffer.taget_address).await?;
-                            pr_info!(logger, "Key:{}", connection_buffer.connection_key);
                         }
                         NodeConnectionKey::DataValue => {
                             let mut msg = scgw_msgs::msg::Data::new().unwrap();
@@ -129,7 +131,12 @@ pub async fn main_udp_service(
 
 
 
-pub async fn search_app(socket: UdpSocket ,closer: Receiver<bool>, locker: Receiver<bool> ) -> Result<(), DynError>{
+pub async fn search_app(
+    socket: UdpSocket,
+    closer: Receiver<bool>,
+    locker: Receiver<bool>,
+    is_debug: bool
+) -> Result<(), DynError>{
     let logger = Logger::new("search_app");
     let deadline = Duration::from_millis(500);
 
@@ -153,12 +160,16 @@ pub async fn search_app(socket: UdpSocket ,closer: Receiver<bool>, locker: Recei
             },
             Err(_) =>{
                 if locker.try_recv() == Ok(true){
-                    pr_info!(logger, "locked");
+                    if is_debug {
+                        pr_info!(logger, "locked");
+                    }
                     async_std::task::sleep(Duration::from_millis(1000)).await;
                     while locker.try_recv() == Ok(true) {}
                     continue;
                 }
-                pr_info!(logger, "search");
+                if is_debug {
+                    pr_info!(logger, "search");
+                }
                 socket.send_to(&buffer, &SocketAddr::new(IpAddr::V4(Ipv4Addr::new(255, 255, 255, 255)), 64202)).await?;
                 async_std::task::sleep(Duration::from_millis(500)).await; 
             }
@@ -167,7 +178,12 @@ pub async fn search_app(socket: UdpSocket ,closer: Receiver<bool>, locker: Recei
 }
 
 
-pub async fn ping_app(socket: UdpSocket ,closer: Receiver<bool>, target_info_rcv: Receiver<SocketAddr>) -> Result<(), DynError>{
+pub async fn ping_app(
+    socket: UdpSocket,
+    closer: Receiver<bool>,
+    target_info_rcv: Receiver<SocketAddr>,
+    is_debug: bool
+) -> Result<(), DynError>{
     let logger = Logger::new("ping_app");
     let deadline = Duration::from_secs(1);
 
@@ -178,8 +194,10 @@ pub async fn ping_app(socket: UdpSocket ,closer: Receiver<bool>, target_info_rcv
                     let mut buffer: Vec<u8> = vec![NodeConnectionKey::PingRequest.convert_to_u8key()];
                     buffer.push(0);
                     socket.send_to(&buffer, addr).await?;
-                    pr_info!(logger, "ping send to {}" , addr);
-        
+                    if is_debug {
+                        pr_info!(logger, "ping send to {}" , addr);
+                    }
+
                     async_std::task::sleep(Duration::from_millis(500)).await;
                 }
                 Err(e) => {
