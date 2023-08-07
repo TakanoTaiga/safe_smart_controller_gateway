@@ -15,44 +15,55 @@
 mod network_module;
 
 use safe_drive::{
-    //context::Context, 
+    context::Context, 
     error::DynError, 
-    //logger::Logger, 
-    //pr_info, 
-    //topic::publisher::Publisher
+    logger::Logger,
+    pr_info,
 };
 use async_std::net::UdpSocket;
 use async_std::channel::unbounded;
+use ros2_rust_util::{get_i64_parameter, get_bool_parameter};
+
 
 #[async_std::main]
 async fn main() -> Result<(), DynError> {
     // ---- safe drive ----
-    //let ctx = Context::new()?;
-    //let node = ctx.create_node("my_talker", None, Default::default())?;
-    //let publisher = node.create_publisher::<remote_control_msgs::msg::Button>("my_topic", None)?;
+    let ctx = Context::new()?;
+    let node = ctx.create_node("scgw", None, Default::default())?;
+
+    let publisher = node.create_publisher::<scgw_msgs::msg::Data>("data_out", None)?;
 
     // Create a logger.
-    //let logger = Logger::new("my_talker"); 
+    let logger = Logger::new("scgw");
+    pr_info!(logger, "Start {:?}",node.get_name());
+
+    let param_port = get_i64_parameter(node.get_name(), "port", 64201);
+    let param_debug = get_bool_parameter(node.get_name(), "debug", false);
+    
+    let (closer_send , closer_rcv) = unbounded();
 
     let (search_locker_send , search_locker_rcv) = unbounded();
-
     let (target_info_send , target_info_rcv) = unbounded();
 
-    let main_udp_socket = UdpSocket::bind("0.0.0.0:64201").await?;
+    let main_udp_socket = UdpSocket::bind(format!("0.0.0.0:{param_port}")).await?;
     let search_app_socket = UdpSocket::bind("0.0.0.0:0").await?;
     let ping_socket = UdpSocket::bind("0.0.0.0:0").await?;
-
+    
+    let get_signaler = async_std::task::spawn(
+        network_module::get_signal(closer_send));
     let main_udp_service_task = async_std::task::spawn( 
-        network_module::main_udp_service(main_udp_socket , search_locker_send , target_info_send));
+        network_module::main_udp_service( main_udp_socket, closer_rcv.clone(), search_locker_send, target_info_send, publisher, param_debug.clone()));
     let search_app_task = async_std::task::spawn(
-        network_module::search_app(search_app_socket , search_locker_rcv));
+        network_module::search_app( search_app_socket ,closer_rcv.clone(), search_locker_rcv, param_debug.clone()));
     let ping_task = async_std::task::spawn(
-        network_module::ping_app(ping_socket , target_info_rcv));
+        network_module::ping_app( ping_socket ,closer_rcv.clone() , target_info_rcv , param_debug.clone()));
 
     main_udp_service_task.await?;
     search_app_task.await?;
     ping_task.await?;
-    
+    get_signaler.await?;
+
+    pr_info!(logger, "End node");
     Ok(())
 }
 
