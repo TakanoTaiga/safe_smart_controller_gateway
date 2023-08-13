@@ -46,7 +46,7 @@ jobs:
         run: |
           cd workspace/ &&
           ls &&
-          ls ./src &&
+          ls ./src/safe_smart_controller_gateway &&
           . /opt/ros/humble/setup.sh &&
           . $HOME/.cargo/env &&
           colcon build
