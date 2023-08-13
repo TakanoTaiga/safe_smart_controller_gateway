@@ -38,8 +38,8 @@ jobs:
 
       - name: install dep
         run: |
-          curl https://github.com/hakoroboken/roboware_msg/releases/download/Ver-0.1/ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb -o ${GITHUB_WORKSPACE}/ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb &&
-          apt-get install -y ${GITHUB_WORKSPACE}/ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb
+          wget https://github.com/hakoroboken/roboware_msg/releases/download/Ver-0.1/ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb &&
+          apt-get install -y ./ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb
 
       - name: Build tests
         id: build_test
