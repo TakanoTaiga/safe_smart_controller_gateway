@@ -45,6 +45,8 @@ jobs:
         id: build_test
         run: |
           cd workspace/ &&
+          ls &&
+          ls ./src &&
           . /opt/ros/humble/setup.sh &&
           . $HOME/.cargo/env &&
           colcon build
