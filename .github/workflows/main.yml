@@ -18,7 +18,7 @@ jobs:
         run: apt-get update && apt-get install -y curl wget python3-pip
 
       - name: Install Rust and Cargo
-        uses: Swatinem/rust-cache@v2
+        uses: dtolnay/rust-toolchain@stable
 
       - name: install ament-cargo
         uses: baptiste0928/cargo-install@v2
