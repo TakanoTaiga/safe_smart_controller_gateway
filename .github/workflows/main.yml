@@ -14,8 +14,8 @@ jobs:
       image: ros:humble-ros-base
 
     steps:
-      - name: Install curl
-        run: apt-get update && apt-get install -y curl
+      - name: Install curl and wget
+        run: apt-get update && apt-get install -y curl wget
 
       - name: Install Rust and Cargo
         uses: dtolnay/rust-toolchain@stable
