@@ -36,11 +36,10 @@ jobs:
         with: 
           path: workspace/src/safe_smart_controller_gateway
 
-      - name: clone dep
+      - name: install dep
         run: |
-          cd workspace/src/ &&
-          git clone https://github.com/hakoroboken/roboware_msg.git &&
-          cd ..
+          curl https://github.com/hakoroboken/roboware_msg/releases/download/Ver-0.1/ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb -o ./ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb &&
+          apt-get install -y ./ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb
 
       - name: Build tests
         id: build_test
