@@ -10,10 +10,40 @@ jobs:
   build_and_test:
     runs-on: ubuntu-22.04
 
+    container:
+      image: ros:humble-ros-base
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: ros-tooling/setup-ros@v0.6
+      - name: Install Rust and Cargo
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: install ament-cargo
+        uses: baptiste0928/cargo-install@v2
         with:
-          required-ros-distributions: humble
-      - run: cargo build
+          crate: cargo-ament-build
+          git: https://github.com/tier4/cargo-ament-build.git
+          tag: main
+
+      - name: make workdpace
+        run: |
+          mkdir -p workspace/src
+
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with: 
+          path: workspace/src/safe_smart_controller_gateway
+
+      - name: clone dep
+        run: |
+          cd workspace/src/ &&
+          git clone https://github.com/hakoroboken/roboware_msg.git &&
+          cd ..
+
+      - name: Build tests
+        id: build_test
+        run: |
+          cd workspace/ &&
+          . /opt/ros/humble/setup.sh &&
+          . $HOME/.cargo/env &&
+          colcon build
+        shell: bash
