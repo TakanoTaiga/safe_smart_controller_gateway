@@ -32,7 +32,7 @@ jobs:
           wget https://github.com/hakoroboken/roboware_msg/releases/download/Ver-0.1/ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb &&
           apt-get install -y ./ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb
 
-    - name: install dep2
+      - name: install dep2
         run: |
           python3 -m pip install git+https://github.com/tier4/colcon-cargo.git git+https://github.com/colcon/colcon-ros-cargo.git
 
