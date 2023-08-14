@@ -103,7 +103,7 @@ pub async fn main_udp_service(
                         
                             let data_size = connection_buffer.rcv_size - 2;
                             let mut data = U8Seq::new(data_size).unwrap();
-                            data.as_slice_mut().copy_from_slice(&connection_buffer.raw_buffer[3..3 + data_size]);
+                            data.as_slice_mut().copy_from_slice(&connection_buffer.raw_buffer[2..2 + data_size]);
                         
                             msg.data = data;
                             publisher.send(&msg)?;
