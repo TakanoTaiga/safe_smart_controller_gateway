@@ -13,23 +13,13 @@
 // limitations under the License.
 
 // --- Network util ---
-use network_module_util::key::{
-    NodeConnectionKey,
-    ConnectionBuffer,
-    U8KeyUtil,
-    EnumKeyUtil
-};
+use network_module_util::key::{ConnectionBuffer, EnumKeyUtil, NodeConnectionKey, U8KeyUtil};
 use network_module_util::net;
 
 // --- ROS 2 Socket ---
 use safe_drive::msg::U8Seq;
 use safe_drive::topic::publisher::Publisher;
-use safe_drive::{
-    error::DynError,
-    logger::Logger,
-    pr_info,
-    pr_error
-};
+use safe_drive::{error::DynError, logger::Logger, pr_error, pr_info};
 use scgw_msgs::msg::Data;
 
 use std::os::unix::prelude::OsStringExt;
@@ -37,11 +27,11 @@ use std::time::Duration;
 
 // --- UDP Socket ---
 use async_std::net::UdpSocket;
-use std::net::{SocketAddr, IpAddr, Ipv4Addr};
 use gethostname::gethostname;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 // --- Inter Thread Commnunication
-use async_std::channel::{Sender , Receiver};
+use async_std::channel::{Receiver, Sender};
 use async_std::future::timeout;
 use async_std::prelude::*;
 
@@ -49,14 +39,13 @@ use async_std::prelude::*;
 use signal_hook::consts::signal::*;
 use signal_hook_async_std::Signals;
 
-
 pub async fn main_udp_service(
     socket: UdpSocket,
     closer: Receiver<bool>,
     lock_search: Sender<bool>,
     ipaddr_send: Sender<SocketAddr>,
     publisher: Publisher<Data>,
-    is_debug: bool
+    is_debug: bool,
 ) -> Result<(), DynError> {
     // --- Logger ---
     let logger = Logger::new("main_udp_service");
@@ -75,19 +64,25 @@ pub async fn main_udp_service(
     pr_info!(logger, "Listening on {}", socket.local_addr()?);
     loop {
         // --- revive data ---
-        match timeout(deadline, socket.recv_from(&mut connection_buffer.raw_buffer)).await {
+        match timeout(
+            deadline,
+            socket.recv_from(&mut connection_buffer.raw_buffer),
+        )
+        .await
+        {
             Ok(recv_result) => match recv_result {
                 Ok((recv, addr)) => {
                     //connection_buffer.raw_buffer[0] is header id. please read doc.
-                    connection_buffer.connection_key = connection_buffer.raw_buffer[0].convert_to_enumkey(); 
+                    connection_buffer.connection_key =
+                        connection_buffer.raw_buffer[0].convert_to_enumkey();
                     connection_buffer.rcv_size = recv;
                     connection_buffer.taget_address.set_ip(addr.ip());
                     connection_buffer.taget_address.set_port(64202);
 
-                    if is_debug{
+                    if is_debug {
                         pr_info!(logger, "Key:{}", connection_buffer.connection_key);
                     }
-                    
+
                     match connection_buffer.connection_key {
                         NodeConnectionKey::SearchAppResponse => {
                             lock_search.send(true).await?;
@@ -100,11 +95,12 @@ pub async fn main_udp_service(
                         NodeConnectionKey::DataValue => {
                             let mut msg = scgw_msgs::msg::Data::new().unwrap();
                             msg.id = connection_buffer.raw_buffer[1]; //data packet id. is not node connection key
-                        
+
                             let data_size = connection_buffer.rcv_size - 2;
                             let mut data = U8Seq::new(data_size).unwrap();
-                            data.as_slice_mut().copy_from_slice(&connection_buffer.raw_buffer[2..2 + data_size]);
-                        
+                            data.as_slice_mut()
+                                .copy_from_slice(&connection_buffer.raw_buffer[2..2 + data_size]);
+
                             msg.data = data;
                             publisher.send(&msg)?;
                         }
@@ -119,24 +115,22 @@ pub async fn main_udp_service(
                 }
             },
             Err(_) => {
-                if closer.try_recv() == Ok(true){
+                if closer.try_recv() == Ok(true) {
                     pr_info!(logger, "main_udp_service thread shutdown");
                     return Ok(());
                 }
-                
             }
         }
     }
 }
 
-
-
 pub async fn search_app(
     socket: UdpSocket,
     closer: Receiver<bool>,
     locker: Receiver<bool>,
-    is_debug: bool
-) -> Result<(), DynError>{
+    param_id: i64,
+    is_debug: bool,
+) -> Result<(), DynError> {
     let logger = Logger::new("search_app");
     let deadline = Duration::from_millis(500);
 
@@ -144,7 +138,7 @@ pub async fn search_app(
 
     // --- create packet ---
     let mut buffer: Vec<u8> = vec![NodeConnectionKey::SearchApp.convert_to_u8key()];
-    buffer.push(0);
+    buffer.push(param_id as u8);
     buffer.append(&mut net::get_ip());
     let ip_port: u16 = 64201;
     buffer.append(&mut ip_port.to_le_bytes().to_vec());
@@ -153,13 +147,13 @@ pub async fn search_app(
     buffer.resize(24, 0);
 
     loop {
-        match timeout(deadline , closer.recv()).await {
+        match timeout(deadline, closer.recv()).await {
             Ok(_) => {
                 pr_info!(logger, "search_app thread shutdown");
                 return Ok(());
-            },
-            Err(_) =>{
-                if locker.try_recv() == Ok(true){
+            }
+            Err(_) => {
+                if locker.try_recv() == Ok(true) {
                     if is_debug {
                         pr_info!(logger, "locked");
                     }
@@ -170,32 +164,38 @@ pub async fn search_app(
                 if is_debug {
                     pr_info!(logger, "search");
                 }
-                socket.send_to(&buffer, &SocketAddr::new(IpAddr::V4(Ipv4Addr::new(255, 255, 255, 255)), 64202)).await?;
-                async_std::task::sleep(Duration::from_millis(500)).await; 
+                socket
+                    .send_to(
+                        &buffer,
+                        &SocketAddr::new(IpAddr::V4(Ipv4Addr::new(255, 255, 255, 255)), 64202),
+                    )
+                    .await?;
+                async_std::task::sleep(Duration::from_millis(500)).await;
             }
         }
     }
 }
 
-
 pub async fn ping_app(
     socket: UdpSocket,
     closer: Receiver<bool>,
     target_info_rcv: Receiver<SocketAddr>,
-    is_debug: bool
-) -> Result<(), DynError>{
+    param_id: i64,
+    is_debug: bool,
+) -> Result<(), DynError> {
     let logger = Logger::new("ping_app");
     let deadline = Duration::from_secs(1);
 
     loop {
-        match timeout(deadline , target_info_rcv.recv()).await {
-            Ok(rcv_result) =>match rcv_result {
+        match timeout(deadline, target_info_rcv.recv()).await {
+            Ok(rcv_result) => match rcv_result {
                 Ok(addr) => {
-                    let mut buffer: Vec<u8> = vec![NodeConnectionKey::PingRequest.convert_to_u8key()];
-                    buffer.push(0);
+                    let mut buffer: Vec<u8> =
+                        vec![NodeConnectionKey::PingRequest.convert_to_u8key()];
+                    buffer.push(param_id as u8);
                     socket.send_to(&buffer, addr).await?;
                     if is_debug {
-                        pr_info!(logger, "ping send to {}" , addr);
+                        pr_info!(logger, "ping send to {}", addr);
                     }
 
                     async_std::task::sleep(Duration::from_millis(500)).await;
@@ -205,8 +205,8 @@ pub async fn ping_app(
                     return Ok(());
                 }
             },
-            Err(_) =>{
-                if closer.try_recv() == Ok(true){
+            Err(_) => {
+                if closer.try_recv() == Ok(true) {
                     pr_info!(logger, "ping_app thread shutdown");
                     return Ok(());
                 }
@@ -215,11 +215,11 @@ pub async fn ping_app(
     }
 }
 
-pub async fn get_signal(closer: Sender<bool> ) -> Result<(), DynError>{
+pub async fn get_signal(closer: Sender<bool>) -> Result<(), DynError> {
     let signals = Signals::new(&[SIGHUP, SIGTERM, SIGINT, SIGQUIT])?;
     let mut signals = signals.fuse();
     loop {
-        if let Some(signal) = signals.next().await{
+        if let Some(signal) = signals.next().await {
             match signal {
                 SIGTERM | SIGINT | SIGQUIT => {
                     // Shutdown the system;
@@ -230,8 +230,8 @@ pub async fn get_signal(closer: Sender<bool> ) -> Result<(), DynError>{
                     closer.send(true).await?;
                     closer.send(true).await?;
                     closer.send(true).await?;
-                    return  Ok(());
-                },
+                    return Ok(());
+                }
                 _ => unreachable!(),
             }
         }
