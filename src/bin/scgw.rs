@@ -1,4 +1,4 @@
-// Copyright 2023 Hakoroboken
+// Copyright 2023 Taiga Takano
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod network_module;
-
+use safe_smart_controller_gateway::network_module;
 use async_std::channel::unbounded;
 use async_std::net::UdpSocket;
 use ros2_rust_util::{get_bool_parameter, get_i64_parameter};
@@ -25,7 +24,7 @@ async fn main() -> Result<(), DynError> {
     let ctx = Context::new()?;
     let node = ctx.create_node("scgw", None, Default::default())?;
 
-    let publisher = node.create_publisher::<scgw_msgs::msg::Data>("data_out", None)?;
+    let publisher = node.create_publisher::<scgw_msgs::msg::Data>("scgw_raw", None)?;
 
     // Create a logger.
     let logger = Logger::new("scgw");
