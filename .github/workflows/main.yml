@@ -31,7 +31,7 @@ jobs:
         run: |
           wget https://github.com/roboware-org/roboware_msg/releases/download/Ver-0.1/ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb &&
           wget https://github.com/roboware-org/roboware_msg/releases/download/Ver-0.1/ros-humble-remote-control-msgs_1.0.0-0jammy_amd64.deb &&
-          apt-get install -y ./ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb ros-humble-remote-control-msgs_1.0.0-0jammy_amd64.deb
+          apt-get install -y ./ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb ./ros-humble-remote-control-msgs_1.0.0-0jammy_amd64.deb
 
       - name: install dep2
         run: |
