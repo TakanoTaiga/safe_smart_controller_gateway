@@ -11,6 +11,6 @@ jobs:
     - name: Checking out
       uses: actions/checkout@v3
     - name: Building
-      uses: roboware-org/roboware-ci@1.0
+      uses: roboware-org/roboware-ci@1.0.1
       with:
        apt-url-packages: https://github.com/roboware-org/roboware/raw/pkg/ros-humble-scgw-msgs_1.0.0-0jammy_amd64.deb https://github.com/roboware-org/roboware_msg/releases/download/Ver-0.1/ros-humble-remote-control-msgs_1.0.0-0jammy_amd64.deb
