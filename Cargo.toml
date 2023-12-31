@@ -10,13 +10,13 @@ safe_drive = "0.2"
 scgw_msgs = {path = "./.msg/scgw_msgs"}
 remote_control_msgs = {path = "./.msg/remote_control_msgs"}
 
-network_module_util = {git = "https://github.com/roboware-org/network_module_util.git"}
 ros2_rust_util = {git = "https://github.com/TakanoTaiga/ros2_rust_util.git"}
 
 async-std = { version = "1", features = ["attributes"] }
 signal-hook = "0.3.4"
 signal-hook-async-std = "0.2"
 gethostname = "0.4.3"
+pnet = "*"
 
 [package.metadata.ros]
 msg = ["scgw_msgs","remote_control_msgs"] 
