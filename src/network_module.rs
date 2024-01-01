@@ -13,8 +13,8 @@
 // limitations under the License.
 
 // --- Network util ---
-use network_module_util::key::{ConnectionBuffer, EnumKeyUtil, NodeConnectionKey, U8KeyUtil};
-use network_module_util::net;
+use crate::network_module_util::key::{ConnectionBuffer, EnumKeyUtil, NodeConnectionKey, U8KeyUtil};
+use crate::network_module_util::net;
 
 // --- ROS 2 Socket ---
 use safe_drive::msg::U8Seq;
